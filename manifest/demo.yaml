@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor
+  namespace: default
+  labels:
+    app: publisher
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: publisher
+  template:
+    metadata:
+      labels:
+        app: publisher
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "sensor"
+        dapr.io/app-protocol: "http"
+        dapr.io/volume-mounts-rw: "iotedge-spiffe-agent-socket:/run/azedge/sockets/"
+    spec:
+      containers:
+      - name: publisher
+        image: jlian.azurecr.io/jlian_sensor:latest
+      volumes:
+      - name: iotedge-spiffe-agent-socket
+        hostPath:
+          path: /run/azedge/sockets/
+          type: DirectoryOrCreate
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert
+  namespace: default
+  labels:
+    app: subscriber
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: subscriber
+  template:
+    metadata:
+      labels:
+        app: subscriber
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "alert"
+        dapr.io/app-port: "5002"
+        dapr.io/app-protocol: "http"
+        dapr.io/volume-mounts-rw: "iotedge-spiffe-agent-socket:/run/azedge/sockets/"
+    spec:
+      containers:
+      - name: subscriber
+        image: jlian.azurecr.io/jlian_alert:latest
+        env:
+        - name: TEMP_THRESHOLD
+          value: "10"
+      volumes:
+      - name: iotedge-spiffe-agent-socket
+        hostPath:
+          path: /run/azedge/sockets/
+          type: DirectoryOrCreate
