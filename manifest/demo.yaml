@@ -59,7 +59,7 @@ spec:
         image: jlian.azurecr.io/jlian_alert:latest
         env:
         - name: TEMP_THRESHOLD
-          value: "70"
+          value: "25"
       volumes:
       - name: iotedge-spiffe-agent-socket
         hostPath:
